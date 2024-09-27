@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libev
-PKG_VERSION:=4.19
+PKG_VERSION:=4.22
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=http://dist.schmorp.de/libev/Attic/
-PKG_MD5SUM:=01d1c672697f649b4f94abd0b70584ff
+PKG_HASH:=736079e8ac543c74d59af73f9c52737b3bfec9601f020bf25a87a4f4d0f01bd6
 PKG_LICENSE:=BSD-2-Clause
 PKG_MAINTAINER:=Karl Palsson <karlp@tweak.net.au>
 
@@ -44,7 +44,9 @@ CONFIGURE_ARGS += \
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include
-	$(CP) $(PKG_INSTALL_DIR)/usr/include/* $(1)/usr/include/
+	$(CP) $(PKG_INSTALL_DIR)/usr/include/event.h $(1)/usr/include/ev_event_compat.h
+	$(CP) $(PKG_INSTALL_DIR)/usr/include/ev.h $(1)/usr/include/
+	$(CP) $(PKG_INSTALL_DIR)/usr/include/ev++.h $(1)/usr/include/
 	$(INSTALL_DIR) $(1)/usr/lib
 	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libev.{a,so*} $(1)/usr/lib/
 endef

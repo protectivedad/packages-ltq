@@ -83,6 +83,13 @@ define Package/attr/conffiles
 /etc/xattr.conf
 endef
 
+#bug?
+define Build/Configure
+    $(CP) -r $(BUILD_DIR_TOOLCHAIN)/uClibc-0.9.33.2/include/sys/xattr.h $(TOOLCHAIN_DIR)/include/sys/
+	cd $(PKG_BUILD_DIR) && sh ./autogen.sh
+	$(call Build/Configure/Default)
+endef
+
 define Build/InstallDev
 	mkdir -p $(1)/usr/include
 	mkdir -p $(1)/usr/lib/pkgconfig
