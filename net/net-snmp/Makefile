@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2006-2017 OpenWrt.org
+# Copyright (C) 2007 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -8,266 +8,160 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=net-snmp
-PKG_VERSION:=5.4.4
-PKG_RELEASE:=2
+PKG_VERSION:=5.1
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=@SF/net-snmp
-PKG_MD5SUM:=95aa054f3c99a1ce242807d7eaf98619
-PKG_MAINTAINER:=Jo-Philipp Wich <jow@openwrt.org>
-PKG_LICENSE:=MIT BSD-3-Clause-Clear
-
-PKG_FIXUP = patch-libtool
+PKG_SOURCE_URL:=http://localhost
+PKG_MD5SUM:=14217471edb2b805b0e28c4c3cfd8c75
+PKG_FIXUP=libtool
+PKG_NO_AUTORECONF=y
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
+PKG_DEFAULT_CUSTOM_SOURCE_DIR:=$(TOPDIR)/../../../wlnsw/wireline_sw_linux26/open_snmp
+PKG_BUILD_DEPENDS:=ifx-oam ltq-mapi 
 
 include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/package-version-override.mk
 
-define Package/net-snmp/Default
+define Package/$(PKG_NAME)
   SECTION:=net
   CATEGORY:=Network
-  URL:=http://www.net-snmp.org/
+  TITLE:=Net SNMP Support
+  URL:=http://localhost
+  MENU:=1
 endef
 
-define Package/net-snmp/Default/description
- Simple Network Management Protocol (SNMP) is a widely used protocol for
- monitoring the health and welfare of network equipment (eg. routers),
- computer equipment and even devices like UPSs. Net-SNMP is a suite of
- applications used to implement SNMP v1, SNMP v2c and SNMP v3 using both
- IPv4 and IPv6.
+define Package/$(PKG_NAME)/description
+  Net SNMP Support
 endef
 
-
-define Package/libnetsnmp
-$(call Package/net-snmp/Default)
-  SECTION:=libs
-  CATEGORY:=Libraries
-  TITLE:=Open source SNMP implementation (libraries)
+define Package/$(PKG_NAME)/config
+$(call Package/$(PKG_NAME)/override_version)
+$(call Package/$(PKG_NAME)/override_source_path)
+	config FEATURE_SNMPv1
+		default n
+		depends on PACKAGE_$(PKG_NAME)
+		bool 'Support for SNMPV1 and V2'
+	config FEATURE_SNMPv3
+		default n
+		depends on PACKAGE_$(PKG_NAME)
+		bool 'Support for SNMPV3'
 endef
-
-define Package/libnetsnmp/description
-$(call Package/net-snmp/Default/description)
- .
- This package contains shared libraries, needed by other programs.
-endef
-
-
-define Package/snmp-mibs
-$(call Package/net-snmp/Default)
-  TITLE:=Open source SNMP implementation (MIB-files)
-endef
-
-define Package/snmp-mibs/description
-$(call Package/net-snmp/Default/description)
- .
- This package contains SNMP MIB-Files.
-endef
+#	config FEATURE_SNMP_ATM_MIB
+#		default y
+#		depends on FEATURE_SNMPv1 || FEATURE_SNMPv3
+#		bool 'ATM MIB Support'
+#	config FEATURE_SNMP_ADSL_MIB
+#		default n
+#		depends on FEATURE_SNMPv1 || FEATURE_SNMPv3 
+#		bool 'ADSL MIB Support'
 
 
-define Package/snmp-utils
-$(call Package/net-snmp/Default)
-  DEPENDS:=+libnetsnmp
-  TITLE:=Open source SNMP implementation (utilities)
-endef
-
-define Package/snmp-utils/description
-$(call Package/net-snmp/Default/description)
- .
- This package contains SNMP client utilities.
-endef
-
-
-define Package/snmpd
-$(call Package/net-snmp/Default)
-  DEPENDS:=+libnetsnmp
-  TITLE:=Open source SNMP implementation (daemon)
-endef
-
-define Package/snmpd/description
-$(call Package/net-snmp/Default/description)
- .
- This package contains the SNMP agent, dynamically linked.
-endef
-
-
-define Package/snmpd-static
-$(call Package/net-snmp/Default)
-  TITLE:=Open source SNMP implementation (daemon)
-endef
-
-define Package/snmpd-static/description
-$(call Package/net-snmp/Default/description)
- .
- This package contains the SNMP agent, statically linked.
-endef
-
-
-SNMP_MIB_MODULES_INCLUDED = \
-	host/hr_device \
-	host/hr_disk \
-	host/hr_filesys \
-	host/hr_network \
-	host/hr_partition \
-	host/hr_proc \
-	host/hr_storage \
-	host/hr_system \
-	ieee802dot11 \
-	if-mib/ifXTable \
-	mibII/at \
-	mibII/icmp \
-	mibII/ifTable \
-	mibII/ip \
-	mibII/snmp_mib \
-	mibII/sysORTable \
-	mibII/system_mib \
-	mibII/tcp \
-	mibII/udp \
-	mibII/vacm_context \
-	mibII/vacm_vars \
-	snmpv3/snmpEngine \
-	snmpv3/snmpMPDStats \
-	snmpv3/usmConf \
-	snmpv3/usmStats \
-	snmpv3/usmUser \
-	tunnel \
-	ucd-snmp/disk \
-	ucd-snmp/dlmod \
-	ucd-snmp/extensible \
-	ucd-snmp/loadave \
-	ucd-snmp/memory \
-	ucd-snmp/pass \
-	ucd-snmp/proc \
-	ucd-snmp/vmstat \
-	util_funcs \
-	utilities/execute \
-
-SNMP_MIB_MODULES_EXCLUDED = \
-	agent_mibs \
-	agentx \
-	disman/event \
-	disman/schedule \
-	hardware \
-	host \
-	if-mib \
-	mibII \
-	notification \
-	notification-log-mib \
-	snmpv3mibs \
-	target \
-	tcp-mib \
-	ucd_snmp \
-	udp-mib \
-	utilities \
-
-SNMP_TRANSPORTS_INCLUDED = Callback UDP
-
-SNMP_TRANSPORTS_EXCLUDED = TCP TCPIPv6 Unix
-
-TARGET_CFLAGS += $(FPIC)
-
-CONFIGURE_ARGS += \
-	--enable-mfd-rewrites \
-	--enable-shared \
-	--enable-static \
-	--with-endianness=$(if $(CONFIG_BIG_ENDIAN),big,little) \
-	--with-logfile=/var/log/snmpd.log \
-	--with-persistent-directory=/usr/lib/snmp/ \
-	--with-default-snmp-version=1 \
-	--with-sys-contact=root@localhost \
-	--with-sys-location=Unknown \
-	--enable-applications \
-	--disable-debugging \
-	--disable-manuals \
-	--disable-scripts \
-	--with-out-mib-modules="$(SNMP_MIB_MODULES_EXCLUDED)" \
-	--with-mib-modules="$(SNMP_MIB_MODULES_INCLUDED)" \
-	--with-out-transports="$(SNMP_TRANSPORTS_EXCLUDED)" \
-	--with-transports="$(SNMP_TRANSPORTS_INCLUDED)" \
-	--without-openssl \
-	--without-libwrap \
-	--without-rpm \
-	--without-zlib \
-	 $(call autoconf_bool,CONFIG_IPV6,ipv6) \
-
-ifeq ($(CONFIG_IPV6),y)
-SNMP_TRANSPORTS_INCLUDED+= UDPIPv6
+ifeq ($(CONFIG_TARGET_ifxcpe_platform_amazon_se),"AMAZON")
+	IFX_CFLAGS = -DCPU_AMAZON
 endif
 
-TARGET_LDFLAGS += -L$(TOOLCHAIN_DIR)/usr/lib
+IFX_CFLAGS += -DBUILD_FROM_LTQ_APPS
 
-ifdef CONFIG_PACKAGE_snmpd-static
-  define Build/Compile/static
-	$(MAKE) -C $(PKG_BUILD_DIR)/agent \
-		LDFLAGS="$(TARGET_LDFLAGS) -lm -static" \
-		EXEEXT="-static" \
-		snmpd-static
-  endef
+IFX_CONFIG_MIB_MODULES = mibII
+ifeq ($(CONFIG_FEATURE_SNMPv3),y)
+	export CONFIG_FEATURE_SNMPv3=y
+	IFX_CONFIG_MIB_MODULES += snmpv3mibs
+endif
+
+ifeq ($(CONFIG_FEATURE_SNMP_ATM_MIB),y)
+	IFX_CONFIG_MIB_MODULES += atmMIB
+	IFX_CFLAGS+= -DCONFIG_FEATURE_SNMP_ATM_MIB 
+endif
+
+ifeq ($(CONFIG_FEATURE_SNMP_ADSL_MIB),y)
+	IFX_CONFIG_MIB_MODULES += adslMIB
+	IFX_CFLAGS+= -DCONFIG_FEAURE_SNMP_ADSL_MIB
+	IFX_CFLAGS+= -DAMAZON_MEI_MIB_RFC3440 
+endif
+	
+#ifeq ($(CONFIG_IFX_SNMP_TRANSPORT_ATMPVC_DOMAIN),y)
+#  ifeq ($(CONFIG_IFX_SNMP_TRANSPORT_EOC_DOMAIN),y)
+#	IFX_CONFIG_SNMP_TRANSPORTS="${IFX_CONFIG_SNMP_TRANSPORTS} AAL5PVC EOC"
+#  else  
+#	IFX_CONFIG_SNMP_TRANSPORTS="${IFX_CONFIG_SNMP_TRANSPORTS} AAL5PVC"
+#  endif
+#endif
+PKG_INST_DIR:=$(PKG_BUILD_DIR)/ipkg/$(PKG_NAME)/
+CONFIGURE_VARS += \
+	IFX_CFLAGS="$(IFX_CFLAGS)" IFX_LDFLAGS="$(IFX_LDFLAGS)" \
+	BUILD_ROOTFS_DIR="$(PKG_INST_DIR)" IFX_CONFIG_SNMP_TRANSPORTS="$(IFX_CONFIG_SNMP_TRANSPORTS)" \
+	IFX_CONFIG_MIB_MODULES="${IFX_CONFIG_MIB_MODULES}" 
+
+ifeq ($(CONFIG_FEATURE_SNMPv1),y)
+	CONFIGURE_ARGS += '--host=mips-hardhat-linux' CC=mips-linux-gcc 'CFLAGS=-Os -mips2 -mtune=r4600 -DAmazon' '--with-endianness=big' 'CPP=mips-linux-cpp' 'host_alias=mips-hardhat-linux' --disable-debugging --disable-mib-loading --with-out-mib-modules="snmpv3mibs agentx utilities agent_mibs ucd_snmp notification target" --with-default-snmp-version=1 --with-out-transports="Callback UDPIPv6 TCPIPv6 TCP Unix IPX" --disable-manuals --disable-scripts --disable-applications --disable-mibs --disable-privacy --prefix=  --with-install-prefix=${PKG_INST_DIR} --with-sys-contact="root@infineon" --with-logfile="/var/log/snmpd.log" --with-persistent-directory="/var/net-snmp" --with-sys-location="/"
+  ifeq ($(CONFIG_PACKAGE_ltq-mapi),y)
+	CONFIGURE_ARGS += --with-mib-modules="${IFX_CONFIG_MIB_MODULES}" --with-transports="UDP ${IFX_CONFIG_SNMP_TRANSPORTS}"
+  endif
+endif
+
+ifeq ($(CONFIG_FEATURE_SNMPv3),y)
+	CONFIGURE_ARGS += '--host=mips-hardhat-linux' CC=mips-linux-gcc 'CFLAGS=-Os -mips2 -mtune=r4600 -DAmazon' '--with-endianness=big' 'CPP=mips-linux-cpp' 'host_alias=mips-hardhat-linux' --disable-debugging --disable-mib-loading --with-out-mib-modules="agentx utilities agent_mibs ucd_snmp notification target" --with-default-snmp-version=3 --with-out-transports="Callback UDPIPv6 TCPIPv6 TCP Unix IPX" --disable-manuals --disable-scripts --disable-applications --disable-mibs --prefix=  --with-install-prefix=${PKG_INST_DIR} --with-openssl="../openssl-0.9.8a" --with-sys-contact="root@infineon" --with-logfile="/var/log/snmpd.log" --with-persistent-directory="/var/net-snmp" --with-sys-location="/"
+  ifeq ($(CONFIG_PACKAGE_ltq-mapi),y)
+	CONFIGURE_ARGS += --with-mib-modules="${IFX_CONFIG_MIB_MODULES}" --with-transports="UDP ${IFX_CONFIG_SNMP_TRANSPORTS}"
+  endif
+	IFX_CFLAGS+=-DCONFIG_FEATURE_SNMPv3 
+endif
+
+define Build/Configure
+	touch $(PKG_BUILD_DIR)/stamp-h.in
+	(cd $(PKG_BUILD_DIR)/; $(CP) configure_full configure; $(CP) Makefile.rules.full Makefile.rules; chmod u+x configure)
+	(cd $(PKG_BUILD_DIR)/; \
+	if [ -x $(CONFIGURE_CMD) ]; then \
+		$(CONFIGURE_VARS) \
+		$(CONFIGURE_CMD) \
+		$(CONFIGURE_ARGS); \
+	fi; \
+	)
+endef
+
+
+IFX_APIS_DIR:=$(wildcard $(BUILD_DIR)/ltq-mapi*)
+IFX_DSL_CPE_API_INCLUDES:=$(STAGING_DIR)/usr/include/drv_dsl_cpe_api/
+
+IFX_INCLUDE += -I$(IFX_APIS_DIR)/include  -I$(IFX_DSL_CPE_API_INCLUDES)
+
+ifeq ($(CONFIG_PACKAGE_dsl-cpe-api-vrx),y)
+  IFX_INCLUDE += -DINCLUDE_DSL_CPE_API_VRX
+  IFX_INCLUDE += -DCONFIG_PACKAGE_DSL_CPE_API
+else
+  ifeq ($(CONFIG_PACKAGE_dsl-cpe-api-danube),y)
+    IFX_INCLUDE += -DINCLUDE_DSL_CPE_API_DANUBE
+    IFX_INCLUDE += -DCONFIG_PACKAGE_DSL_CPE_API
+  endif
+endif
+
+
+export CONFIG_PACKAGE_ltq-mapi
+
+ifeq ($(CONFIG_PACKAGE_ltq-mapi),y)
+  EXTRA_LDFLAGS = -L$(IFX_APIS_DIR)/lib -Wl,-rpath-link,$(IFX_APIS_DIR)/lib -L$(STAGING_DIR)/usr/lib/ -loamapi -lIFXAPIs
 endif
 
 define Build/Compile
-	$(MAKE) -C $(PKG_BUILD_DIR) \
-		INSTALL_PREFIX="$(PKG_INSTALL_DIR)" \
-		LDFLAGS="$(TARGET_LDFLAGS) -lm -lc" \
-		all install
-	$(Build/Compile/static)
+	$(MAKE) -C $(PKG_BUILD_DIR) $(TARGET_CONFIGURE_OPTS) IFX_CFLAGS="$(IFX_CFLAGS) $(IFX_INCLUDE)" IFX_LDFLAGS="$(IFX_LDFLAGS) $(EXTRA_LDFLAGS)" all
 endef
 
-define Build/InstallDev
-	$(INSTALL_DIR) $(2)/bin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/net-snmp-config $(2)/bin/
-	$(SED) 's,=/usr,=$(STAGING_DIR)/usr,g' $(2)/bin/net-snmp-config
-
-	$(INSTALL_DIR) $(1)/usr/include
-	$(CP) $(PKG_INSTALL_DIR)/usr/include/net-snmp $(1)/usr/include/
-	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libnetsnmp{,agent,helpers,mibs}.{a,so*} $(1)/usr/lib/
-endef
-
-define Package/libnetsnmp/install
-	$(INSTALL_DIR) $(1)/usr/lib
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libnetsnmp{,agent,helpers,mibs}.so.* $(1)/usr/lib/
-endef
-
-define Package/snmp-mibs/install
-	$(INSTALL_DIR) $(1)/usr/share/snmp/mibs
-	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/share/snmp/mibs/* $(1)/usr/share/snmp/mibs/
-endef
-
-define Package/snmp-utils/install
-	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/snmp{get,set,status,test,trap,walk} $(1)/usr/bin/
-endef
-
-define Package/snmpd/conffiles
-/etc/config/snmpd
-endef
-
-define Package/snmpd/install
-	$(INSTALL_DIR) $(1)/etc/config
-	$(INSTALL_DATA) ./files/snmpd.conf $(1)/etc/config/snmpd
-	$(INSTALL_DIR) $(1)/etc/snmp
-	ln -sf /var/run/snmpd.conf $(1)/etc/snmp/
-	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) ./files/snmpd.init $(1)/etc/init.d/snmpd
+define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/snmpd $(1)/usr/sbin/snmpd
+	$(INSTALL_DIR) $(1)/usr/lib
+	$(MAKE) -C $(PKG_BUILD_DIR)/agent $(TARGET_CONFIGURE_OPTS) IFX_CFLAGS="$(IFX_CFLAGS) $(IFX_INCLUDE)" IFX_LDFLAGS="$(IFX_LDFLAGS)" install
+	$(MAKE) -C $(PKG_BUILD_DIR)/snmplib $(TARGET_CONFIGURE_OPTS) IFX_CFLAGS="$(IFX_CFLAGS) $(IFX_INCLUDE)" IFX_LDFLAGS="$(IFX_LDFLAGS)" install
+	$(CP) $(PKG_BUILD_DIR)/agent/snmpd $(1)/usr/sbin
+	rm -rf $(PKG_INST_DIR)/usr/lib/libnetsnmp*
 endef
 
-define Package/snmpd-static/conffiles
-/etc/config/snmpd
+define Build/Clean
+	if [ -d $(PKG_BUILD_DIR) ]; then $(MAKE) -C $(PKG_BUILD_DIR) clean; \
+	rm -f ${PKG_INST_DIR}/usr/lib/libnetsnmp*; \
+	rm -f ${PKG_INST_DIR}/usr/sbin/snmp*; \
+	$(MAKE) -C $(PKG_BUILD_DIR) distclean; \
+	$(RM) $(PKG_BUILD_DIR)/ipk; fi
 endef
 
-define Package/snmpd-static/install
-	$(INSTALL_DIR) $(1)/etc/config
-	$(INSTALL_DATA) ./files/snmpd.conf $(1)/etc/config/snmpd
-	$(INSTALL_DIR) $(1)/etc/snmp
-	ln -sf /var/run/snmpd.conf $(1)/etc/snmp/
-	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) ./files/snmpd.init $(1)/etc/init.d/snmpd
-	$(INSTALL_DIR) $(1)/usr/sbin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/agent/snmpd-static $(1)/usr/sbin/snmpd
-endef
-
-$(eval $(call BuildPackage,libnetsnmp))
-$(eval $(call BuildPackage,snmp-mibs))
-$(eval $(call BuildPackage,snmp-utils))
-$(eval $(call BuildPackage,snmpd))
-$(eval $(call BuildPackage,snmpd-static))
+$(eval $(call BuildPackage,$(PKG_NAME)))

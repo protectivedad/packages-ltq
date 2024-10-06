@@ -10,3 +10,4 @@ if [ -f /usr/bin/dbus-launch-x ]; then
 else
 	exec /usr/bin/dbus-launch.real $@
 fi
+
